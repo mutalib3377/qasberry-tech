@@ -8,17 +8,35 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "dependencies": {
+    "@clerk/nextjs": "^5.7.5",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@mux/mux-node": "^12.8.1",
+    "@prisma/client": "6.19.3",
+    "@supabase/supabase-js": "^2.103.2",
+    "cloudinary": "^2.9.0",
+    "dotenv": "^17.4.2",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.8.0",
+    "next": "14.2.35",
+    "next-cloudinary": "^6.17.5",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.35"
+    "slugify": "^1.6.9",
+    "svix": "^1.90.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "postcss": "^8",
-    "tailwindcss": "^3.4.1"
+    "prisma": "6.19.3",
+    "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
   }
 }
