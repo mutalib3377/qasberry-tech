@@ -1,90 +1,48 @@
-'use client'
 // components/marketing/features-section.tsx
-// Feature highlights grid with animated entrance on scroll.
+// "Why Qasberry" 6-feature grid — original dark design restored.
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
-import { Brain, Zap, BookOpen, Award, Users, Shield } from 'lucide-react'
+import { Map, BookOpen, Clock, Users, ShieldCheck, Lock } from 'lucide-react'
 
 const FEATURES = [
-  {
-    icon:    <Brain size={24} />,
-    color:   'from-violet-500/20 to-violet-600/5 border-violet-500/15 text-violet-400',
-    title:   'AI-Personalised Roadmap',
-    desc:    'Tell us your career. Our AI instantly builds an 8-step learning roadmap tailored to how AI impacts your specific field.',
-  },
-  {
-    icon:    <BookOpen size={24} />,
-    color:   'from-blue-500/20 to-blue-600/5 border-blue-500/15 text-blue-400',
-    title:   'Career-Specific Courses',
-    desc:    'Expert-led video courses built for your profession — not generic AI tutorials. Learn only what\'s relevant to you.',
-  },
-  {
-    icon:    <Zap size={24} />,
-    color:   'from-cyan-500/20 to-cyan-600/5 border-cyan-500/15 text-cyan-400',
-    title:   'Learn at Your Pace',
-    desc:    'Modular lessons you can complete in minutes. Progress is saved automatically so you can pick up exactly where you left off.',
-  },
-  {
-    icon:    <Users size={24} />,
-    color:   'from-emerald-500/20 to-emerald-600/5 border-emerald-500/15 text-emerald-400',
-    title:   'Peer Communities',
-    desc:    'Connect with professionals in your career track. Share challenges, discoveries, and real-world AI applications.',
-  },
-  {
-    icon:    <Award size={24} />,
-    color:   'from-amber-500/20 to-amber-600/5 border-amber-500/15 text-amber-400',
-    title:   'Verified Certificates',
-    desc:    'Earn a Qasberry certificate on course completion — shareable on LinkedIn to demonstrate your AI proficiency.',
-  },
-  {
-    icon:    <Shield size={24} />,
-    color:   'from-rose-500/20 to-rose-600/5 border-rose-500/15 text-rose-400',
-    title:   'Responsible AI Focus',
-    desc:    'Every course includes an ethics and safety module covering bias, privacy, and responsible AI adoption in your field.',
-  },
+  { icon: Map,         title: 'AI-Personalised Roadmap',    body: 'Strategic paths tailored to your specific professional objectives and experience level.'          },
+  { icon: BookOpen,    title: 'Career-Specific Courses',    body: 'Industry-vetted content focusing on the AI tools that actually matter in your field.'              },
+  { icon: Clock,       title: 'Learn at Your Pace',         body: 'Bite-sized modules designed to fit into a busy professional schedule.'                            },
+  { icon: Users,       title: 'Peer Communities',           body: 'Connect with other professionals in your field who are also adopting AI.'                         },
+  { icon: ShieldCheck, title: 'Verified Certificates',      body: 'Earn credentials that demonstrate your AI proficiency to employers.'                              },
+  { icon: Lock,        title: 'Responsible AI Focus',       body: 'Training on ethics, security, and the safe implementation of AI tools in your workplace.'        },
 ]
 
 export function FeaturesSection() {
-  const ref    = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-100px' })
-
   return (
-    <section id="features" className="py-24 px-6" ref={ref}>
-      <div className="max-w-7xl mx-auto">
-        {/* Section heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16 space-y-3"
-        >
-          <p className="text-violet-400 text-sm font-semibold uppercase tracking-widest">
-            Why Qasberry
-          </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+    <section className="bg-[#0a0a0f] py-20 px-6">
+      <div className="max-w-6xl mx-auto">
+
+        {/* Heading */}
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 mb-4">
+            <span className="text-xs font-semibold text-violet-400 uppercase tracking-widest">Why Qasberry</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-3">
             Everything you need to master AI
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto text-balance">
+          <p className="text-slate-500 text-base max-w-xl mx-auto">
             Not a generic MOOC. A focused, career-first AI platform built for professionals who don&apos;t have time to waste.
           </p>
-        </motion.div>
+        </div>
 
-        {/* Feature grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className={`relative p-6 rounded-2xl bg-gradient-to-br border backdrop-blur-sm group hover:scale-[1.02] transition-transform duration-300 ${f.color}`}
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {FEATURES.map(({ icon: Icon, title, body }) => (
+            <div
+              key={title}
+              className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-violet-500/20 hover:bg-white/[0.05] transition-all duration-200 group"
             >
-              <div className="mb-4">{f.icon}</div>
-              <h3 className="text-white font-semibold text-lg mb-2">{f.title}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
-            </motion.div>
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4 group-hover:bg-violet-500/20 transition-colors">
+                <Icon size={18} className="text-violet-400" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-white font-semibold mb-2">{title}</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">{body}</p>
+            </div>
           ))}
         </div>
       </div>

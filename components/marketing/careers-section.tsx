@@ -1,113 +1,66 @@
-'use client'
 // components/marketing/careers-section.tsx
-// Career tracks grid — fetched server-side, rendered with animations.
+// "Career Tracks" grid — original dark design restored.
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
 import Link from 'next/link'
-import { ArrowRight, BookOpen } from 'lucide-react'
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 
-// Career → gradient colour mapping (cycles through palette by index)
-const CARD_PALETTES = [
-  { bg: 'from-violet-500/15 to-purple-900/10',  border: 'border-violet-500/20',  dot: 'bg-violet-500',  text: 'text-violet-400' },
-  { bg: 'from-blue-500/15 to-blue-900/10',       border: 'border-blue-500/20',    dot: 'bg-blue-500',    text: 'text-blue-400' },
-  { bg: 'from-cyan-500/15 to-cyan-900/10',       border: 'border-cyan-500/20',    dot: 'bg-cyan-500',    text: 'text-cyan-400' },
-  { bg: 'from-emerald-500/15 to-green-900/10',   border: 'border-emerald-500/20', dot: 'bg-emerald-500', text: 'text-emerald-400' },
-  { bg: 'from-amber-500/15 to-yellow-900/10',    border: 'border-amber-500/20',   dot: 'bg-amber-500',   text: 'text-amber-400' },
-  { bg: 'from-rose-500/15 to-red-900/10',        border: 'border-rose-500/20',    dot: 'bg-rose-500',    text: 'text-rose-400' },
-]
+interface Career { id: string; name: string; slug: string; courseCount: number }
+interface Props   { careers: Career[] }
 
-interface Career {
-  id:          string
-  name:        string
-  slug:        string
-  courseCount: number
+const CAREER_META: Record<string, { emoji: string; description: string }> = {
+  developer:    { emoji: '💻', description: 'Master Copilot, AI-driven debugging, and LLM integration.'           },
+  entrepreneur: { emoji: '🚀', description: 'Automate operations and leverage AI for rapid scaling.'              },
+  kid:          { emoji: '🌟', description: 'Fun, safe introductions to how AI works and creates.'                },
+  lawyer:       { emoji: '⚖️', description: 'Legal research and document analysis with AI assistance.'            },
+  marketer:     { emoji: '📊', description: 'AI for content strategy, SEO, and predictive analytics.'            },
+  nurse:        { emoji: '👩‍⚕️', description: 'Documentation automation and patient monitoring AI tools.'       },
+  student:      { emoji: '🎓', description: 'AI study habits and research tools for the modern student.'         },
+  teacher:      { emoji: '🧑‍🏫', description: 'Lesson planning and personalised learning paths with AI.'        },
 }
-
-interface Props {
-  careers: Career[]
-}
+const DEFAULT_META = { emoji: '✨', description: 'Discover how AI can transform your professional workflow.' }
 
 export function CareersSection({ careers }: Props) {
-  const ref    = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-80px' })
-
   return (
-    <section id="careers" className="py-24 px-6 relative" ref={ref}>
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-950/5 to-transparent pointer-events-none" />
+    <section id="careers" className="bg-[#0a0a0f] py-20 px-6">
+      <div className="max-w-6xl mx-auto">
 
-      <div className="max-w-7xl mx-auto relative">
         {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16 space-y-3"
-        >
-          <p className="text-violet-400 text-sm font-semibold uppercase tracking-widest">
-            Career Tracks
-          </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-4">
+            <span className="text-xs font-semibold text-cyan-400 uppercase tracking-widest">Career Tracks</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-3">
             Built for your profession
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto text-balance">
+          <p className="text-slate-500 text-base max-w-xl mx-auto">
             From healthcare to finance, law to education — Qasberry has a dedicated AI learning track for your career.
           </p>
-        </motion.div>
+        </div>
 
-        {/* Careers grid */}
-        {careers.length === 0 ? (
-          <div className="text-center py-16 text-slate-600">
-            Career tracks coming soon — check back shortly!
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {careers.map((career, i) => {
-              const palette = CARD_PALETTES[i % CARD_PALETTES.length]
-              return (
-                <motion.div
-                  key={career.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={inView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: i * 0.08 }}
-                  className={`group p-6 rounded-2xl bg-gradient-to-br border ${palette.bg} ${palette.border} hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${palette.dot}`} />
-                    <span className={`flex items-center gap-1 text-xs ${palette.text}`}>
-                      <BookOpen size={11} />
-                      {career.courseCount} {career.courseCount === 1 ? 'course' : 'courses'}
-                    </span>
-                  </div>
-                  <h3 className="text-white font-bold text-xl mb-2 leading-tight">{career.name}</h3>
-                  <p className="text-slate-500 text-sm mb-5">
-                    AI skills tailored for {career.name.toLowerCase()} professionals.
-                  </p>
-                  <SignedOut>
-                    <SignInButton mode="modal">
-                      <button className={`inline-flex items-center gap-1.5 text-sm font-medium ${palette.text} group-hover:gap-2.5 transition-all`}>
-                        Start this track
-                        <ArrowRight size={14} />
-                      </button>
-                    </SignInButton>
-                  </SignedOut>
-                  <SignedIn>
-                    <Link
-                      href="/onboarding"
-                      className={`inline-flex items-center gap-1.5 text-sm font-medium ${palette.text} group-hover:gap-2.5 transition-all`}
-                    >
-                      Start this track
-                      <ArrowRight size={14} />
-                    </Link>
-                  </SignedIn>
-                </motion.div>
-              )
-            })}
-          </div>
-        )}
+        {/* Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {careers.map((career) => {
+            const meta = CAREER_META[career.slug] ?? DEFAULT_META
+            return (
+              <Link
+                key={career.id}
+                href={`/courses?career=${career.slug}`}
+                className="group p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-violet-500/30 hover:bg-white/[0.06] transition-all duration-200 flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <span className="text-2xl">{meta.emoji}</span>
+                  <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wide">
+                    {career.courseCount} {career.courseCount === 1 ? 'course' : 'courses'}
+                  </span>
+                </div>
+                <h3 className="text-white font-semibold mb-1.5 text-sm">{career.name}</h3>
+                <p className="text-slate-600 text-xs leading-relaxed flex-1">{meta.description}</p>
+                <p className="text-violet-500 text-xs font-semibold mt-4 group-hover:text-violet-400 transition-colors">
+                  Start this track →
+                </p>
+              </Link>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

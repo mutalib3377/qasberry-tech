@@ -19,6 +19,7 @@ const config: Config = {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // ── Semantic CSS-variable tokens (existing) ──────────────────────────
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         card: 'var(--card)',
@@ -44,6 +45,19 @@ const config: Config = {
         destructive: {
           DEFAULT: 'var(--destructive)',
           foreground: 'var(--destructive-foreground)',
+        },
+
+        // ── Qasberry Brand Design Tokens (Phase A) ───────────────────────────
+        brand: {
+          purple:         '#5B4BD5', // primary CTA, active states
+          'purple-dark':  '#4A3BBF', // hover on purple buttons
+          'purple-light': '#7B6FE8', // soft glow, focus rings
+          navy:           '#1A1040', // hero background, dark sections
+          lavender:       '#A89CEC', // career pills, subtle accents
+          charcoal:       '#1C1C1E', // admin sidebar background
+          offwhite:       '#F8F8FA', // light section backgrounds, card fills
+          border:         '#E4E4E7', // card borders on light backgrounds
+          muted:          '#71717A', // secondary text, placeholder text
         },
       },
       borderRadius: {

@@ -1,7 +1,4 @@
-// app/layout.tsx
-// Root layout — wraps the entire Qasberry app in ClerkProvider.
-// Env vars: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (Clerk)
-
+// app/layout.tsx — root layout, Inter only (restored)
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
@@ -29,11 +26,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>

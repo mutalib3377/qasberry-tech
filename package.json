@@ -17,6 +17,7 @@
     "@mux/mux-node": "^12.8.1",
     "@prisma/client": "6.19.3",
     "@supabase/supabase-js": "^2.103.2",
+    "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.9.0",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.38.0",
@@ -25,6 +26,7 @@
     "next-cloudinary": "^6.17.5",
     "react": "^18",
     "react-dom": "^18",
+    "recharts": "^3.8.1",
     "slugify": "^1.6.9",
     "svix": "^1.90.0",
     "zod": "^4.3.6"
