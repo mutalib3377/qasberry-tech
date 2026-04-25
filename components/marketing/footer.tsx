@@ -5,8 +5,9 @@
 // Newsletter input uses shared Input + Button components.
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
-import { Zap, ArrowRight, Globe, ExternalLink, Share2 } from 'lucide-react'
+import { ArrowRight, Globe, ExternalLink, Share2 } from 'lucide-react'
 import { Input } from '@/components/shared/Input'
 import { Button } from '@/components/shared/Button'
 
@@ -64,10 +65,14 @@ export function Footer() {
 
           {/* Col 1 — Brand */}
           <div className="space-y-5">
-            <Link href="/" className="flex items-center gap-2.5 group w-fit">
-              <div className="w-8 h-8 rounded-lg bg-brand-purple flex items-center justify-center shadow-md shadow-brand-purple/30">
-                <Zap size={16} className="text-white" />
-              </div>
+            <Link href="/" className="flex items-center gap-2.5 w-fit">
+              <Image
+                src="/logo.png"
+                alt="Qasberry logo"
+                width={36}
+                height={36}
+                className="rounded-xl"
+              />
               <span className="font-bold tracking-tight text-lg">Qasberry</span>
             </Link>
 

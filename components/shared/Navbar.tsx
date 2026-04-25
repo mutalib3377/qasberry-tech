@@ -10,10 +10,11 @@
 // Mobile:  hamburger icon → full-screen Framer Motion drawer
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs'
-import { Menu, X, Zap } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/shared/Button'
 
 // ── Nav links config ──────────────────────────────────────────────────────────
@@ -77,13 +78,15 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
 
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 flex-shrink-0 group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-brand-purple flex items-center justify-center shadow-md shadow-brand-purple/30 group-hover:shadow-brand-purple/50 transition-shadow">
-              <Zap size={16} className="text-white" />
-            </div>
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Qasberry logo"
+              width={36}
+              height={36}
+              className="rounded-xl"
+              priority
+            />
             <span
               className={`font-bold tracking-tight text-lg transition-colors ${
                 scrolled ? 'text-brand-charcoal' : 'text-white'
@@ -180,11 +183,15 @@ export function Navbar() {
               {/* Drawer header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-brand-border">
                 <Link href="/" onClick={closeDrawer} className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-brand-purple flex items-center justify-center">
-                    <Zap size={13} className="text-white" />
-                  </div>
-                  <span className="font-bold text-brand-charcoal">Qasberry</span>
-                </Link>
+                <Image
+                  src="/logo.png"
+                  alt="Qasberry logo"
+                  width={30}
+                  height={30}
+                  className="rounded-xl"
+                />
+                <span className="font-bold text-brand-charcoal">Qasberry</span>
+              </Link>
                 <button
                   onClick={closeDrawer}
                   className="p-1.5 rounded-lg text-brand-muted hover:bg-brand-offwhite transition-colors"
