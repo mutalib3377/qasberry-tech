@@ -39,17 +39,21 @@ export function CareerPill({
 
   const Tag = onClick ? 'button' : 'span'
 
+  const cls = [...base, variants, className].filter(Boolean).join(' ')
+
+  if (onClick) {
+    return (
+      <button type="button" className={cls} onClick={onClick}>
+        <span role="img" aria-label={label} className="text-base leading-none">{emoji}</span>
+        <span>{label}</span>
+      </button>
+    )
+  }
+
   return (
-    <Tag
-      // @ts-expect-error — Tag is either button or span, both accept className / onClick
-      className={[...base, variants, className].filter(Boolean).join(' ')}
-      onClick={onClick}
-      type={onClick ? 'button' : undefined}
-    >
-      <span role="img" aria-label={label} className="text-base leading-none">
-        {emoji}
-      </span>
+    <span className={cls}>
+      <span role="img" aria-label={label} className="text-base leading-none">{emoji}</span>
       <span>{label}</span>
-    </Tag>
+    </span>
   )
 }

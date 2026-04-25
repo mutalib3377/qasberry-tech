@@ -29,8 +29,8 @@ const NAV_LINKS = [
 
 const drawerVariants = {
   closed: { x: '100%', opacity: 0 },
-  open:   { x: '0%',  opacity: 1, transition: { type: 'tween', duration: 0.28, ease: 'easeOut' } },
-  exit:   { x: '100%', opacity: 0, transition: { type: 'tween', duration: 0.22, ease: 'easeIn'  } },
+  open:   { x: '0%',  opacity: 1, transition: { type: 'tween' as const, duration: 0.28, ease: 'easeOut' as const } },
+  exit:   { x: '100%', opacity: 0, transition: { type: 'tween' as const, duration: 0.22, ease: 'easeIn'  as const } },
 }
 
 const linkVariants = {
@@ -38,7 +38,7 @@ const linkVariants = {
   open:   (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { delay: 0.08 + i * 0.06, ease: 'easeOut', duration: 0.22 },
+    transition: { delay: 0.08 + i * 0.06, ease: 'easeOut' as const, duration: 0.22 },
   }),
 }
 
