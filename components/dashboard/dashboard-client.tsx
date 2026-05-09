@@ -3,12 +3,22 @@
 // Rich student dashboard UI — enrollments, certificates, roadmap CTA.
 
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
 import {
   BookOpen, Award, ArrowRight, Zap,
   LayoutDashboard, GraduationCap, ExternalLink,
 } from 'lucide-react'
+
+// ── Role labels ──────────────────────────────────────────────────────────────
+
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN:     'Super Admin',
+  CONTENT_MANAGER: 'Content Manager',
+  MODERATOR:       'Moderator',
+  STUDENT:         'Student',
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -173,16 +183,14 @@ export function DashboardClient({ firstName, role, enrollments, certificates }: 
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-cyan-500 flex items-center justify-center">
-              <Zap size={14} className="text-white" />
-            </div>
+            <Image src="/logo.png" alt="Qasberry" width={30} height={30} className="rounded-xl" />
             <span className="text-white font-bold text-base">Qasberry</span>
           </Link>
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/25 text-violet-300 text-xs font-medium uppercase tracking-wide">
-              {role}
+            <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/25 text-violet-300 text-xs font-medium tracking-wide">
+              {ROLE_LABELS[role] ?? role}
             </span>
             <UserButton afterSignOutUrl="/" />
           </div>

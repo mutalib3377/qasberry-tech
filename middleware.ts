@@ -5,9 +5,10 @@
 //   - /dashboard/* routes: must be signed in
 //   - All other routes: public, pass through freely
 //
-// Security note: Role is read from Clerk sessionClaims.metadata (set via
-// Clerk publicMetadata). This is cryptographically signed by Clerk and cannot
-// be tampered with by the client — safe to trust in middleware.
+// Security note: Role is read from Clerk sessionClaims.
+// In Clerk v5, publicMetadata is exposed directly on sessionClaims.publicMetadata.
+// A fallback also checks sessionClaims.metadata for JWT-template-based setups.
+// Both paths are cryptographically signed by Clerk — safe to trust in middleware.
 
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
@@ -46,13 +47,16 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(new URL('/', req.url))
     }
 
-    // Read role from Clerk session claims (publicMetadata is included in JWT)
-    // Security: never trust client-provided role — always read from signed session claims
-    const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+    // Read role from Clerk session claims.
+    // Clerk v5: publicMetadata is available directly on sessionClaims.publicMetadata
+    // Fallback: also check sessionClaims.metadata (used when a custom JWT template is configured)
+    const claimsPublic = sessionClaims?.publicMetadata as { role?: UserRole } | undefined
+    const claimsMeta   = sessionClaims?.metadata   as { role?: UserRole } | undefined
+    const role = claimsPublic?.role ?? claimsMeta?.role
 
     if (!role || !ADMIN_ROLES.includes(role)) {
-      // Signed in but not an admin — redirect to homepage
-      return NextResponse.redirect(new URL('/', req.url))
+      // Signed in but not an admin — redirect to dashboard (student area)
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 
     // Valid admin role — allow through

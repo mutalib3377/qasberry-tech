@@ -2,9 +2,11 @@
 // Student dashboard — Phase 3 upgrade.
 // Shows enrolled courses, certificates, and quick "Build my roadmap" CTA.
 // Protected by middleware.
+// Admin users are redirected to /admin.
 
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect }    from 'next/navigation'
+import { isAdminRole } from '@/lib/auth'
 import { db }          from '@/lib/db'
 import type { Metadata } from 'next'
 import { DashboardClient } from '@/components/dashboard/dashboard-client'
@@ -46,6 +48,11 @@ export default async function DashboardPage() {
   })
 
   const role = (user.publicMetadata as { role?: string })?.role ?? 'STUDENT'
+
+  // Redirect admin/staff users away from the student dashboard
+  if (isAdminRole(role as Parameters<typeof isAdminRole>[0])) {
+    redirect('/admin')
+  }
 
   // Build a Set of completed lesson IDs for O(1) lookup
   const completedLessonIds = new Set((dbUser?.progress ?? []).map((p) => p.lessonId))

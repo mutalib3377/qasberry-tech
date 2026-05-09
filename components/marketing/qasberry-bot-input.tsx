@@ -32,13 +32,13 @@ export function QasberryBotInput() {
       const res  = await fetch('/api/bot/roadmap', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ message: query }),
+        body:    JSON.stringify({ careerInput: query }),
       })
       const data = await res.json()
-      const career = data?.career ?? query
-      router.push(`/roadmap?career=${encodeURIComponent(career)}`)
+      // Navigate to onboarding page where the full roadmap UI lives
+      router.push(`/onboarding?career=${encodeURIComponent(query)}`)
     } catch {
-      router.push(`/roadmap?career=${encodeURIComponent(query)}`)
+      router.push(`/onboarding?career=${encodeURIComponent(query)}`)
     } finally {
       setLoading(false)
     }

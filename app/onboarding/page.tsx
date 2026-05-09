@@ -3,11 +3,13 @@
 // AI Roadmap bot — the centrepiece Phase 3 feature.
 // User enters their career; AI returns a personalised 8-step roadmap.
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
-  Zap, ArrowRight, Loader2, RotateCcw, CheckCircle2,
+  ArrowRight, Loader2, RotateCcw, CheckCircle2,
   BookOpen, Wrench, Bot, Database, MessageSquare,
   TrendingUp, Shield, Palette, Home,
 } from 'lucide-react'
@@ -64,10 +66,18 @@ function StepCard({ step, index }: { step: Roadmap['steps'][number]; index: numb
 
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
-  const [careerInput, setCareerInput] = useState('')
+  const searchParams  = useSearchParams()
+  const [careerInput, setCareerInput] = useState(() => searchParams.get('career') ?? '')
   const [loading,     setLoading]     = useState(false)
   const [roadmap,     setRoadmap]     = useState<Roadmap | null>(null)
   const [error,       setError]       = useState<string | null>(null)
+
+  // Auto-generate if the hero bot input navigated here with ?career=...
+  useEffect(() => {
+    const pre = searchParams.get('career')
+    if (pre) generateRoadmap(pre)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function generateRoadmap(career?: string) {
     const input = (career ?? careerInput).trim()
@@ -114,9 +124,7 @@ export default function OnboardingPage() {
       {/* Nav strip */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-cyan-500 flex items-center justify-center">
-            <Zap size={14} className="text-white" />
-          </div>
+          <Image src="/logo.png" alt="Qasberry" width={30} height={30} className="rounded-xl" />
           <span className="text-white font-bold text-base">Qasberry</span>
         </Link>
         <Link href="/dashboard" className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors">

@@ -5,6 +5,7 @@
 
 import { motion } from 'framer-motion'
 import { QasberryBotInput } from './qasberry-bot-input'
+import { QasberryRobot }   from './qasberry-robot'
 
 const fadeUp = {
   hidden:  { opacity: 0, y: 24 },
@@ -75,9 +76,18 @@ export function HeroSection() {
           Master the tools reshaping your industry — starting today.
         </motion.p>
 
+        {/* ── Qasberry Robot — hovering AI character ───────────────────── */}
+        <motion.div
+          initial="hidden" animate="visible" custom={0.28}
+          variants={fadeUp}
+          className="mb-6 flex justify-center"
+        >
+          <QasberryRobot />
+        </motion.div>
+
         {/* ── Career search input — the main CTA ─────────────────────────── */}
         <motion.div
-          initial="hidden" animate="visible" custom={0.3}
+          initial="hidden" animate="visible" custom={0.4}
           variants={fadeUp}
           className="mb-10"
         >
