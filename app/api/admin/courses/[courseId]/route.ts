@@ -7,7 +7,7 @@
 // Security: auth + role checked on every request.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { generateSlug } from '@/lib/slugify'
@@ -28,13 +28,20 @@ const updateCourseSchema = z.object({
 
 type RouteContext = { params: { courseId: string } }
 
+// Helper: get role directly from Clerk publicMetadata (bypasses JWT session claims)
+async function getRoleFromClerk(userId: string): Promise<UserRole | undefined> {
+  const clerk = await clerkClient()
+  const user = await clerk.users.getUser(userId)
+  return (user.publicMetadata as { role?: UserRole })?.role
+}
+
 // ─── GET /api/admin/courses/[courseId] ────────────────────────────────────────
 
 export async function GET(_req: NextRequest, { params }: RouteContext): Promise<NextResponse> {
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-  const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+  const role = await getRoleFromClerk(userId)
   if (!role || !(['SUPER_ADMIN', 'CONTENT_MANAGER', 'MODERATOR'] as UserRole[]).includes(role)) {
     return NextResponse.json<ApiResponse>({ success: false, error: 'Forbidden' }, { status: 403 })
   }
@@ -68,10 +75,10 @@ export async function GET(_req: NextRequest, { params }: RouteContext): Promise<
 // ─── PATCH /api/admin/courses/[courseId] ──────────────────────────────────────
 
 export async function PATCH(req: NextRequest, { params }: RouteContext): Promise<NextResponse> {
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-  const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+  const role = await getRoleFromClerk(userId)
   if (!role || !COURSE_MANAGER_ROLES.includes(role)) {
     return NextResponse.json<ApiResponse>({ success: false, error: 'Forbidden' }, { status: 403 })
   }
@@ -114,11 +121,11 @@ export async function PATCH(req: NextRequest, { params }: RouteContext): Promise
 // Soft delete only — sets status to ARCHIVED. Never hard-deletes.
 
 export async function DELETE(_req: NextRequest, { params }: RouteContext): Promise<NextResponse> {
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 })
 
   // Only SUPER_ADMIN can archive courses
-  const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+  const role = await getRoleFromClerk(userId)
   if (role !== 'SUPER_ADMIN') {
     return NextResponse.json<ApiResponse>({ success: false, error: 'Only Super Admins can archive courses' }, { status: 403 })
   }

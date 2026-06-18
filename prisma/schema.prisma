@@ -108,7 +108,8 @@ model Lesson {
   id             String   @id @default(cuid())
   moduleId       String
   title          String
-  videoUrl       String?
+  videoUrl       String?  // YouTube / Google Drive / external video link
+  pdfUrl         String?  // Google Drive / external PDF link
   muxAssetId     String?
   muxPlaybackId  String?
   duration       Int?     // in seconds

@@ -11,7 +11,7 @@ import Link from 'next/link'
 import {
   ArrowRight, Loader2, RotateCcw, CheckCircle2,
   BookOpen, Wrench, Bot, Database, MessageSquare,
-  TrendingUp, Shield, Palette, Home,
+  TrendingUp, Shield, Palette, Home, Lock, Zap,
 } from 'lucide-react'
 import type { Roadmap, RoadmapSkillTag } from '@/types'
 
@@ -37,12 +37,20 @@ const SUGGESTIONS = [
 // ── Step card component ──────────────────────────────────────────────────────
 function StepCard({ step, index }: { step: Roadmap['steps'][number]; index: number }) {
   const meta = TAG_META[step.skillTag] ?? TAG_META.fundamentals
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      className="group relative flex gap-4 p-5 rounded-2xl border border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/70 transition-all"
+  const hasCourse = !!step.courseId
+  const priceLabel = step.isFree
+    ? 'Free'
+    : step.price != null && Number(step.price) > 0
+      ? `₦${Number(step.price).toLocaleString()}`
+      : null
+
+  const inner = (
+    <div
+      className={`group relative flex gap-4 p-5 rounded-2xl border transition-all ${
+        hasCourse
+          ? 'border-slate-800 bg-slate-900/40 hover:border-violet-500/50 hover:bg-slate-900/70 cursor-pointer'
+          : 'border-slate-800 bg-slate-900/40'
+      }`}
     >
       {/* Step number */}
       <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
@@ -50,19 +58,61 @@ function StepCard({ step, index }: { step: Roadmap['steps'][number]; index: numb
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0 space-y-1.5">
+      <div className="flex-1 min-w-0 space-y-2">
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-white font-semibold text-base leading-snug">{step.title}</h3>
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium flex-shrink-0 ${meta.color}`}>
-            {meta.icon}
-            {meta.label}
-          </span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {priceLabel && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold ${
+                step.isFree
+                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
+                  : 'bg-blue-500/15 text-blue-400 border-blue-500/20'
+              }`}>
+                {step.isFree ? <Zap size={10} /> : <Lock size={10} />}
+                {priceLabel}
+              </span>
+            )}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium ${meta.color}`}>
+              {meta.icon}
+              {meta.label}
+            </span>
+          </div>
         </div>
         <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
+        {hasCourse && (
+          <p className="text-violet-400 text-xs font-medium group-hover:text-violet-300 transition-colors flex items-center gap-1">
+            Start course <ArrowRight size={11} />
+          </p>
+        )}
       </div>
+    </div>
+  )
+
+  if (hasCourse && step.courseId) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: index * 0.08 }}
+      >
+        <Link href={`/courses/${step.courseSlug ?? step.courseId}`}>
+          {inner}
+        </Link>
+      </motion.div>
+    )
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
+    >
+      {inner}
     </motion.div>
   )
 }
+
 
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
@@ -269,36 +319,75 @@ export default function OnboardingPage() {
                 <p className="text-slate-400 text-base leading-relaxed">{roadmap.summary}</p>
               </motion.div>
 
-              {/* Steps */}
-              <div className="space-y-3">
-                {roadmap.steps.map((step, i) => (
-                  <StepCard key={step.order} step={step} index={i} />
-                ))}
-              </div>
+              {/* Steps — or empty state */}
+              {roadmap.steps.length > 0 ? (
+                <>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 -mb-1">
+                    <BookOpen size={12} />
+                    <span>{roadmap.steps.length} course{roadmap.steps.length !== 1 ? 's' : ''} matched to your career</span>
+                  </div>
+                  <div className="space-y-3">
+                    {roadmap.steps.map((step, i) => (
+                      <StepCard key={step.order} step={step} index={i} />
+                    ))}
+                  </div>
 
-              {/* CTA after roadmap */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="p-6 rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-600/10 to-cyan-900/5 text-center space-y-4"
-              >
-                <div className="flex items-center justify-center gap-2 text-violet-300">
-                  <BookOpen size={18} />
-                  <span className="font-semibold">Ready to start learning?</span>
-                </div>
-                <p className="text-slate-400 text-sm">
-                  Browse Qasberry&apos;s career-specific AI courses and begin completing your roadmap today.
-                </p>
-                <Link
-                  id="browse-courses-btn"
-                  href="/dashboard"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-violet-500/20"
+                  {/* CTA after roadmap */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                    className="p-6 rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-600/10 to-cyan-900/5 text-center space-y-4"
+                  >
+                    <div className="flex items-center justify-center gap-2 text-violet-300">
+                      <BookOpen size={18} />
+                      <span className="font-semibold">Ready to start learning?</span>
+                    </div>
+                    <p className="text-slate-400 text-sm">
+                      Click any course above to get started, or browse all available courses on your dashboard.
+                    </p>
+                    <Link
+                      id="browse-courses-btn"
+                      href="/dashboard"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-violet-500/20"
+                    >
+                      Go to dashboard
+                      <ArrowRight size={15} />
+                    </Link>
+                  </motion.div>
+                </>
+              ) : (
+                /* No relevant courses found for this career */
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 rounded-2xl border border-slate-800 bg-slate-900/40 text-center space-y-4"
                 >
-                  Browse courses
-                  <ArrowRight size={15} />
-                </Link>
-              </motion.div>
+                  <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto">
+                    <BookOpen size={24} className="text-slate-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-white font-semibold">No courses yet for this career</h3>
+                    <p className="text-slate-400 text-sm max-w-sm mx-auto">
+                      {roadmap.summary}
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={reset}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white text-sm font-medium rounded-xl transition-colors"
+                    >
+                      <RotateCcw size={13} /> Try a different career
+                    </button>
+                    <Link
+                      href="/dashboard"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl transition-colors"
+                    >
+                      Browse all courses <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

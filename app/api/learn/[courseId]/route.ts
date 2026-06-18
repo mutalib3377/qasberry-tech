@@ -37,10 +37,13 @@ export async function GET(
         include: {
           lessons: {
             orderBy: { order: 'asc' },
-            // Return muxPlaybackId since user is enrolled
+            // Return all playback fields since user is enrolled
             select: {
               id: true, title: true, order: true,
-              isFree: true, duration: true, muxPlaybackId: true,
+              isFree: true, duration: true,
+              muxPlaybackId: true,
+              videoUrl: true,  // external link (YouTube, Drive, Vimeo, Loom)
+              pdfUrl: true,    // external PDF / reading material link
             },
           },
         },

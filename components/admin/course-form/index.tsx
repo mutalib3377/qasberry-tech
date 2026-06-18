@@ -19,7 +19,6 @@ import {
   Plus,
   Trash2,
   GripVertical,
-  Upload,
   CheckCircle,
   Loader2,
   Video,
@@ -27,10 +26,12 @@ import {
   BookOpen,
   Lock,
   Unlock,
-  Eye,
   Edit2,
   Send,
   Save,
+  Link as LinkIcon,
+  FileText,
+  AlertCircle,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -46,10 +47,12 @@ interface LessonDraft {
   tempId: string       // always present
   title: string
   isFree: boolean
+  videoUrl?: string | null   // YouTube / Google Drive / Vimeo link
+  pdfUrl?: string | null     // Google Drive / direct PDF link
+  // Legacy Mux fields kept for backward-compat
   muxAssetId?: string | null
   muxPlaybackId?: string | null
   duration?: number | null
-  uploadStatus?: 'idle' | 'uploading' | 'processing' | 'ready' | 'error'
 }
 
 interface ModuleDraft {
@@ -547,8 +550,11 @@ function StepCurriculum({
                                         ) : (
                                           <Lock size={11} className="text-slate-600" />
                                         )}
-                                        {lesson.muxPlaybackId && (
-                                          <CheckCircle size={11} className="text-emerald-400" aria-label="Video ready" />
+                                        {(lesson.videoUrl || lesson.muxPlaybackId) && (
+                                          <CheckCircle size={11} className="text-emerald-400" aria-label="Video linked" />
+                                        )}
+                                        {lesson.pdfUrl && (
+                                          <FileText size={11} className="text-blue-400" aria-label="PDF linked" />
                                         )}
                                         <button
                                           onClick={() => onSelectLesson(moduleIdx, lessonIdx)}
@@ -630,6 +636,18 @@ function StepCurriculum({
 
 // ─── Step 3: Lesson Detail Editor ─────────────────────────────────────────────
 
+function isValidUrl(url: string): boolean {
+  try { new URL(url); return true } catch { return false }
+}
+
+function getVideoProviderLabel(url: string): string {
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'YouTube'
+  if (url.includes('drive.google.com')) return 'Google Drive'
+  if (url.includes('vimeo.com')) return 'Vimeo'
+  if (url.includes('loom.com')) return 'Loom'
+  return 'External video'
+}
+
 function StepLessonDetail({
   courseId,
   moduleIdx,
@@ -647,11 +665,12 @@ function StepLessonDetail({
 }) {
   const mod    = modules[moduleIdx]
   const lesson = mod?.lessons[lessonIdx]
-  const [saving, setSaving]   = useState(false)
-  const [title, setTitle]     = useState(lesson?.title ?? '')
-  const [isFree, setIsFree]   = useState(lesson?.isFree ?? false)
-  const [uploading, setUploading] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
+
+  const [saving,   setSaving]   = useState(false)
+  const [title,    setTitle]    = useState(lesson?.title    ?? '')
+  const [isFree,   setIsFree]   = useState(lesson?.isFree   ?? false)
+  const [videoUrl, setVideoUrl] = useState(lesson?.videoUrl ?? '')
+  const [pdfUrl,   setPdfUrl]   = useState(lesson?.pdfUrl   ?? '')
 
   if (!lesson || !mod) {
     return (
@@ -662,8 +681,13 @@ function StepLessonDetail({
     )
   }
 
+  const videoUrlValid = !videoUrl || isValidUrl(videoUrl)
+  const pdfUrlValid   = !pdfUrl   || isValidUrl(pdfUrl)
+
   async function save() {
     if (!mod?.id || !lesson?.id) return
+    if (!videoUrlValid) { alert('Please enter a valid video URL (e.g. https://youtube.com/...)'); return }
+    if (!pdfUrlValid)   { alert('Please enter a valid PDF URL (e.g. https://drive.google.com/...)'); return }
     setSaving(true)
     try {
       const res = await fetch(
@@ -671,7 +695,12 @@ function StepLessonDetail({
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, isFree }),
+          body: JSON.stringify({
+            title,
+            isFree,
+            videoUrl: videoUrl.trim() || null,
+            pdfUrl:   pdfUrl.trim()   || null,
+          }),
         }
       )
       if (res.ok) {
@@ -681,99 +710,31 @@ function StepLessonDetail({
               ? {
                   ...m,
                   lessons: m.lessons.map((l, li) =>
-                    li === lessonIdx ? { ...l, title, isFree } : l
+                    li === lessonIdx
+                      ? { ...l, title, isFree, videoUrl: videoUrl.trim() || null, pdfUrl: pdfUrl.trim() || null }
+                      : l
                   ),
                 }
               : m
           )
         )
         onBack()
+      } else {
+        const d = await res.json() as { error?: string }
+        alert(d.error ?? 'Failed to save lesson')
       }
     } catch {
-      alert('Failed to save lesson')
+      alert('Network error — please try again')
     } finally {
       setSaving(false)
     }
   }
 
-  async function uploadVideo(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file || !mod?.id || !lesson?.id) return
-    setUploading(true)
-
-    // Mark as uploading in state
-    setModules((prev) =>
-      prev.map((m, mi) =>
-        mi === moduleIdx
-          ? { ...m, lessons: m.lessons.map((l, li) => li === lessonIdx ? { ...l, uploadStatus: 'uploading' as const } : l) }
-          : m
-      )
-    )
-
-    try {
-      // Step 1: get direct upload URL from our API
-      const urlRes = await fetch('/api/admin/mux/upload', { method: 'POST' })
-      const urlData = await urlRes.json() as { success: boolean; data?: { uploadId: string; uploadUrl: string } }
-      if (!urlRes.ok || !urlData.data) throw new Error('Failed to get upload URL')
-
-      const { uploadId, uploadUrl } = urlData.data
-
-      // Step 2: Save the uploadId temporarily so the Mux webhook can link it
-      // (In production you'd store uploadId in db for the webhook to resolve)
-      // We store muxAssetId as the uploadId for now — the webhook will resolve it
-      await fetch(
-        `/api/admin/courses/${courseId}/modules/${mod.id}/lessons/${lesson.id}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ muxAssetId: uploadId }),
-        }
-      )
-
-      // Step 3: Upload directly to Mux
-      await fetch(uploadUrl, { method: 'PUT', body: file })
-
-      // Update local state — video is now processing
-      setModules((prev) =>
-        prev.map((m, mi) =>
-          mi === moduleIdx
-            ? {
-                ...m,
-                lessons: m.lessons.map((l, li) =>
-                  li === lessonIdx
-                    ? { ...l, muxAssetId: uploadId, uploadStatus: 'processing' as const }
-                    : l
-                ),
-              }
-            : m
-        )
-      )
-
-      alert('✅ Video uploaded! Mux is processing it. The playback ID will be saved automatically via webhook once ready.')
-    } catch (err) {
-      alert((err as Error).message || 'Upload failed')
-      setModules((prev) =>
-        prev.map((m, mi) =>
-          mi === moduleIdx
-            ? { ...m, lessons: m.lessons.map((l, li) => li === lessonIdx ? { ...l, uploadStatus: 'error' as const } : l) }
-            : m
-        )
-      )
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const uploadStatusLabel: Record<string, string> = {
-    idle:       'No video uploaded',
-    uploading:  'Uploading…',
-    processing: 'Processing (Mux webhook will update when ready)',
-    ready:      'Video ready ✓',
-    error:      'Upload failed — try again',
-  }
+  const inputCls = 'w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-colors'
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button onClick={onBack} className="text-slate-400 hover:text-white transition-colors">
           <ChevronLeft size={18} />
@@ -784,11 +745,11 @@ function StepLessonDetail({
         </div>
       </div>
 
-      {/* Title */}
+      {/* Lesson Title */}
       <div>
         <label className="block text-sm font-medium text-slate-300 mb-1.5">Lesson Title</label>
         <input
-          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-colors"
+          className={inputCls}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={120}
@@ -806,45 +767,66 @@ function StepLessonDetail({
         <span className="text-xs text-slate-600">(non-enrolled users can watch this)</span>
       </div>
 
-      {/* Video upload */}
+      {/* ── Video URL ── */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">Video</label>
-        <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/50 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-              lesson.uploadStatus === 'ready'      ? 'bg-emerald-400' :
-              lesson.uploadStatus === 'processing' ? 'bg-amber-400 animate-pulse' :
-              lesson.uploadStatus === 'uploading'  ? 'bg-blue-400 animate-pulse' :
-              lesson.uploadStatus === 'error'      ? 'bg-red-400' :
-                                                     'bg-slate-600'
-            }`} />
-            <p className="text-slate-400 text-sm">
-              {uploadStatusLabel[lesson.uploadStatus ?? 'idle']}
-            </p>
+        <label className="flex items-center gap-1.5 text-sm font-medium text-slate-300 mb-1.5">
+          <Video size={14} className="text-violet-400" /> Video Link
+        </label>
+        <div className="space-y-2">
+          <div className="relative">
+            <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <input
+              className={`${inputCls} pl-9 ${videoUrl && !videoUrlValid ? 'border-red-500/60 focus:border-red-500' : ''}`}
+              placeholder="Paste YouTube, Google Drive, Vimeo or Loom URL…"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+            />
           </div>
-          {lesson.muxPlaybackId && (
-            <p className="text-xs text-slate-600 font-mono">Playback ID: {lesson.muxPlaybackId}</p>
+          {videoUrl && videoUrlValid && (
+            <p className="text-xs text-emerald-400 flex items-center gap-1">
+              <CheckCircle size={11} /> {getVideoProviderLabel(videoUrl)} — link valid ✓
+            </p>
           )}
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-            {uploading ? 'Uploading…' : lesson.muxAssetId ? 'Replace Video' : 'Upload Video'}
-          </button>
-          <p className="text-xs text-slate-600">
-            MP4, MOV, or MKV · directly uploaded to Mux (no size limit)
-          </p>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="video/mp4,video/quicktime,video/x-matroska,video/*"
-            className="hidden"
-            onChange={uploadVideo}
-          />
+          {videoUrl && !videoUrlValid && (
+            <p className="text-xs text-red-400 flex items-center gap-1">
+              <AlertCircle size={11} /> Enter a complete URL starting with https://
+            </p>
+          )}
         </div>
+        <p className="text-xs text-slate-600 mt-1.5">
+          Supported: YouTube · Google Drive (share as &quot;Anyone with link&quot;) · Vimeo · Loom · any direct video URL
+        </p>
+      </div>
+
+      {/* ── PDF / Reading Material URL ── */}
+      <div>
+        <label className="flex items-center gap-1.5 text-sm font-medium text-slate-300 mb-1.5">
+          <FileText size={14} className="text-blue-400" /> PDF / Reading Material Link
+        </label>
+        <div className="space-y-2">
+          <div className="relative">
+            <LinkIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <input
+              className={`${inputCls} pl-9 ${pdfUrl && !pdfUrlValid ? 'border-red-500/60 focus:border-red-500' : ''}`}
+              placeholder="Paste Google Drive, Dropbox or direct PDF URL…"
+              value={pdfUrl}
+              onChange={(e) => setPdfUrl(e.target.value)}
+            />
+          </div>
+          {pdfUrl && pdfUrlValid && (
+            <p className="text-xs text-blue-400 flex items-center gap-1">
+              <CheckCircle size={11} /> PDF link valid ✓
+            </p>
+          )}
+          {pdfUrl && !pdfUrlValid && (
+            <p className="text-xs text-red-400 flex items-center gap-1">
+              <AlertCircle size={11} /> Enter a complete URL starting with https://
+            </p>
+          )}
+        </div>
+        <p className="text-xs text-slate-600 mt-1.5">
+          Supported: Google Drive (share as &quot;Anyone with link&quot;) · Dropbox · any direct .pdf URL
+        </p>
       </div>
 
       {/* Actions */}
@@ -857,8 +839,8 @@ function StepLessonDetail({
         </button>
         <button
           onClick={save}
-          disabled={saving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors"
+          disabled={saving || !videoUrlValid || !pdfUrlValid}
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           Save Lesson
@@ -869,6 +851,7 @@ function StepLessonDetail({
 }
 
 // ─── Step 4: Review + Publish ─────────────────────────────────────────────────
+
 
 function StepReview({
   courseId,
@@ -1036,12 +1019,12 @@ export function CourseForm({ careers }: { careers: Career[] }) {
           thumbnail:   info.thumbnail || undefined,
         }),
       })
-      const data = await res.json() as { success: boolean; data?: { id: string } }
+      const data = await res.json() as { success: boolean; data?: { id: string }, error?: string }
       if (res.ok && data.success && data.data) {
         setCourseId(data.data.id)
         setStep(1)
       } else {
-        alert('Failed to create course. Please check all fields.')
+        alert(data.error || 'Failed to create course. Please check all fields.')
       }
     } catch {
       alert('Network error — please try again')

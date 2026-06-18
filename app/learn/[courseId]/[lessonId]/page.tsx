@@ -20,6 +20,8 @@ interface Lesson {
   isFree:        boolean
   duration:      number | null
   muxPlaybackId: string | null // only returned for enrolled lessons
+  videoUrl:      string | null // external link: YouTube, Drive, Vimeo, Loom
+  pdfUrl:        string | null // external PDF link
 }
 
 interface Module {
@@ -47,7 +49,75 @@ function MuxPlayer({ playbackId, onEnded }: { playbackId: string; onEnded: () =>
         allowFullScreen
         onEnded={onEnded}
       />
-      {/* Mux Player via script embed is the correct approach but iframe works for preview */}
+    </div>
+  )
+}
+
+// ── External Video Player ─────────────────────────────────────────────────────
+// Converts raw share URLs from YouTube, Google Drive, Vimeo, and Loom
+// into embeddable iframe src URLs.
+
+function getEmbedUrl(url: string): string | null {
+  try {
+    const u = new URL(url)
+
+    // YouTube: https://www.youtube.com/watch?v=ID or https://youtu.be/ID
+    if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
+      const id = u.hostname.includes('youtu.be')
+        ? u.pathname.slice(1)
+        : u.searchParams.get('v')
+      if (!id) return null
+      return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`
+    }
+
+    // Google Drive: https://drive.google.com/file/d/FILE_ID/view
+    if (u.hostname.includes('drive.google.com')) {
+      const match = u.pathname.match(/\/file\/d\/([^/]+)/)
+      if (!match) return null
+      return `https://drive.google.com/file/d/${match[1]}/preview`
+    }
+
+    // Vimeo: https://vimeo.com/ID
+    if (u.hostname.includes('vimeo.com')) {
+      const id = u.pathname.split('/').filter(Boolean).pop()
+      if (!id) return null
+      return `https://player.vimeo.com/video/${id}?title=0&byline=0`
+    }
+
+    // Loom: https://www.loom.com/share/ID
+    if (u.hostname.includes('loom.com')) {
+      const id = u.pathname.split('/').filter(Boolean).pop()
+      if (!id) return null
+      return `https://www.loom.com/embed/${id}`
+    }
+
+    // Fallback: try embedding as-is
+    return url
+  } catch {
+    return null
+  }
+}
+
+function ExternalVideoPlayer({ videoUrl }: { videoUrl: string }) {
+  const embedUrl = getEmbedUrl(videoUrl)
+
+  if (!embedUrl) {
+    return (
+      <div className="w-full aspect-video bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-center">
+        <p className="text-slate-500 text-sm">Unable to embed this video link.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl">
+      <iframe
+        src={embedUrl}
+        className="w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+        title="Lesson video"
+      />
     </div>
   )
 }
@@ -282,8 +352,10 @@ export default function LearnPage({ params }: PageProps) {
               )}
             </AnimatePresence>
 
-            {/* Video player */}
-            {lesson?.muxPlaybackId ? (
+            {/* Video player — external link takes priority, then Mux */}
+            {lesson?.videoUrl ? (
+              <ExternalVideoPlayer videoUrl={lesson.videoUrl} />
+            ) : lesson?.muxPlaybackId ? (
               <MuxPlayer
                 playbackId={lesson.muxPlaybackId}
                 onEnded={markComplete}
@@ -295,6 +367,19 @@ export default function LearnPage({ params }: PageProps) {
                   <p className="text-slate-600 text-sm">Video not yet available</p>
                 </div>
               </div>
+            )}
+
+            {/* PDF / Reading material link */}
+            {lesson?.pdfUrl && (
+              <a
+                href={lesson.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-500/25 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
+              >
+                <span className="text-blue-400 text-sm font-medium">📄 Open reading material</span>
+                <span className="text-blue-400/60 text-xs ml-auto">Opens in new tab →</span>
+              </a>
             )}
 
             {/* Lesson title + mark complete */}

@@ -1,16 +1,33 @@
 // lib/auth.ts
 // Clerk authentication helpers for Qasberry.
-// Provides clean role extraction from Clerk session claims.
 // Role is stored in Clerk publicMetadata — only editable server-side/via Clerk dashboard.
+//
+// IMPORTANT: Clerk does NOT include publicMetadata in session JWTs by default.
+// Always use getAuthenticatedUserRole() in API routes — it reads from the Clerk
+// user record directly via clerkClient, guaranteeing the latest role value.
 
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { auth, currentUser, clerkClient } from '@clerk/nextjs/server'
 
 export type UserRole = 'SUPER_ADMIN' | 'CONTENT_MANAGER' | 'MODERATOR' | 'STUDENT'
 
 /**
+ * Reads the role directly from the Clerk user's publicMetadata.
+ * Use this in all API routes — it is always up-to-date.
+ * Returns null if the user is not authenticated.
+ */
+export async function getAuthenticatedUserRole(): Promise<{ userId: string; role: UserRole } | null> {
+  const { userId } = await auth()
+  if (!userId) return null
+  const clerk = await clerkClient()
+  const clerkUser = await clerk.users.getUser(userId)
+  const role = (clerkUser.publicMetadata as { role?: UserRole })?.role ?? 'STUDENT'
+  return { userId, role }
+}
+
+/**
  * Returns the role from the current Clerk session claims.
- * Safe to call from Server Components and API routes.
- * Falls back to 'STUDENT' if no role is set (new users before webhook fires).
+ * NOTE: Falls back to 'STUDENT' — use getAuthenticatedUserRole() in API routes.
+ * @deprecated Use getAuthenticatedUserRole() instead for reliable role reads.
  */
 export async function getCurrentUserRole(): Promise<UserRole> {
   const { sessionClaims } = await auth()

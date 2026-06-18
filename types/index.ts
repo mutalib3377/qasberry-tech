@@ -130,6 +130,10 @@ export type RoadmapSkillTag =
 
 export interface RoadmapStep {
   order: number
+  courseId?: string       // ID of the matching Qasberry course
+  courseSlug?: string     // slug for linking: /courses/[slug]
+  isFree?: boolean        // whether the course is free
+  price?: unknown         // course price (Decimal from Prisma)
   title: string
   description: string
   skillTag: RoadmapSkillTag

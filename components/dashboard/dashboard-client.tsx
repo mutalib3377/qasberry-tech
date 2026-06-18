@@ -5,11 +5,17 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { UserButton } from '@clerk/nextjs'
+import dynamic from 'next/dynamic'
 import {
   BookOpen, Award, ArrowRight, Zap,
   LayoutDashboard, GraduationCap, ExternalLink,
 } from 'lucide-react'
+
+// Clerk UserButton must be lazy-loaded (ssr:false) to prevent hydration mismatch
+const UserButton = dynamic(
+  () => import('@clerk/nextjs').then((m) => m.UserButton),
+  { ssr: false }
+)
 
 // ── Role labels ──────────────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@
 // Admin API: Update and delete a single module.
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import type { UserRole, ApiResponse } from '@/types'
@@ -16,11 +16,18 @@ const updateModuleSchema = z.object({
 
 type RouteContext = { params: { courseId: string; moduleId: string } }
 
+// Helper: read role from Clerk publicMetadata directly
+async function getUserRole(userId: string): Promise<UserRole | undefined> {
+  const clerk = await clerkClient()
+  const user = await clerk.users.getUser(userId)
+  return (user.publicMetadata as { role?: UserRole })?.role
+}
+
 export async function PATCH(req: NextRequest, { params }: RouteContext): Promise<NextResponse> {
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-  const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+  const role = await getUserRole(userId)
   if (!role || !COURSE_MANAGER_ROLES.includes(role)) {
     return NextResponse.json<ApiResponse>({ success: false, error: 'Forbidden' }, { status: 403 })
   }
@@ -51,10 +58,10 @@ export async function PATCH(req: NextRequest, { params }: RouteContext): Promise
 }
 
 export async function DELETE(_req: NextRequest, { params }: RouteContext): Promise<NextResponse> {
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 })
 
-  const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+  const role = await getUserRole(userId)
   if (!role || !COURSE_MANAGER_ROLES.includes(role)) {
     return NextResponse.json<ApiResponse>({ success: false, error: 'Forbidden' }, { status: 403 })
   }

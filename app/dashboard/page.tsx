@@ -6,7 +6,6 @@
 
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect }    from 'next/navigation'
-import { isAdminRole } from '@/lib/auth'
 import { db }          from '@/lib/db'
 import type { Metadata } from 'next'
 import { DashboardClient } from '@/components/dashboard/dashboard-client'
@@ -50,7 +49,8 @@ export default async function DashboardPage() {
   const role = (user.publicMetadata as { role?: string })?.role ?? 'STUDENT'
 
   // Redirect admin/staff users away from the student dashboard
-  if (isAdminRole(role as Parameters<typeof isAdminRole>[0])) {
+  const ADMIN_ROLES = ['SUPER_ADMIN', 'CONTENT_MANAGER', 'MODERATOR']
+  if (ADMIN_ROLES.includes(role)) {
     redirect('/admin')
   }
 

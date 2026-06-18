@@ -9,7 +9,7 @@
 // Env vars: DATABASE_URL, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { generateSlug, generateUniqueSlug } from '@/lib/slugify'
@@ -34,7 +34,7 @@ const createCourseSchema = z.object({
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   // Step 1: Verify auth
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) {
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Unauthorized' },
@@ -42,8 +42,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  // Step 2: Verify role — any admin can view courses
-  const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+  // Step 2: Verify role — read directly from Clerk publicMetadata
+  const clerk = await clerkClient()
+  const clerkUser = await clerk.users.getUser(userId)
+  const role = (clerkUser.publicMetadata as { role?: UserRole })?.role
   if (!role || !(['SUPER_ADMIN', 'CONTENT_MANAGER', 'MODERATOR'] as UserRole[]).includes(role)) {
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Forbidden' },
@@ -105,7 +107,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // Step 1: Verify auth
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) {
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Unauthorized' },
@@ -113,8 +115,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
 
-  // Step 2: Verify role — only SUPER_ADMIN and CONTENT_MANAGER can create courses
-  const role = (sessionClaims?.metadata as { role?: UserRole } | undefined)?.role
+  // Step 2: Verify role — read directly from Clerk publicMetadata
+  const clerk = await clerkClient()
+  const clerkUser = await clerk.users.getUser(userId)
+  const role = (clerkUser.publicMetadata as { role?: UserRole })?.role
   if (!role || !COURSE_MANAGER_ROLES.includes(role)) {
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Forbidden — only Content Managers and Super Admins can create courses' },
