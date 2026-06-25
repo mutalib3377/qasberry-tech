@@ -198,7 +198,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
                   <p className="text-3xl font-extrabold text-emerald-400">FREE</p>
                 ) : (
                   <p className="text-3xl font-extrabold text-white">
-                    ₦{Number(course.price).toLocaleString()}
+                    ${Number(course.price).toLocaleString()}
                   </p>
                 )}
               </div>

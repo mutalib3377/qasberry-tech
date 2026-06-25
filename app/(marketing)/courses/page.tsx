@@ -159,7 +159,7 @@ export default async function CourseCatalogPage({ searchParams }: PageProps) {
                       </span>
                     ) : (
                       <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-700 text-white text-xs font-bold backdrop-blur-sm">
-                        ₦{Number(course.price).toLocaleString()}
+                        ${Number(course.price).toLocaleString()}
                       </span>
                     )}
                   </div>

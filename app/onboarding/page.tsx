@@ -41,7 +41,7 @@ function StepCard({ step, index }: { step: Roadmap['steps'][number]; index: numb
   const priceLabel = step.isFree
     ? 'Free'
     : step.price != null && Number(step.price) > 0
-      ? `₦${Number(step.price).toLocaleString()}`
+      ? `$${Number(step.price).toLocaleString()}`
       : null
 
   const inner = (

@@ -193,7 +193,7 @@ export default async function AdminCoursesPage({ searchParams }: PageProps) {
                       {course.isFree ? (
                         <span className="text-emerald-400 font-medium">Free</span>
                       ) : (
-                        `₦${Number(course.price).toLocaleString()}`
+                        `$${Number(course.price).toLocaleString()}`
                       )}
                     </td>
                     <td className="px-5 py-4 text-slate-300">

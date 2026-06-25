@@ -76,7 +76,7 @@ export default async function AdminRevenuePage() {
   const statCards = [
     {
       label:     'Total Revenue',
-      value:     `₦${totalRevenue.toLocaleString()}`,
+      value:     `$${totalRevenue.toLocaleString()}`,
       icon:      <DollarSign size={20} />,
       color:     'from-emerald-500/20 to-emerald-600/10 border-emerald-500/20',
       iconColor: 'text-emerald-400',
@@ -97,7 +97,7 @@ export default async function AdminRevenuePage() {
     },
     {
       label:     'Avg. Revenue / Enroll',
-      value:     `₦${Math.round(avgRevPerEnrollment).toLocaleString()}`,
+      value:     `$${Math.round(avgRevPerEnrollment).toLocaleString()}`,
       icon:      <BookOpen size={20} />,
       color:     'from-amber-500/20 to-amber-600/10 border-amber-500/20',
       iconColor: 'text-amber-400',
@@ -140,7 +140,7 @@ export default async function AdminRevenuePage() {
               return (
                 <div key={m.label} className="flex-1 flex flex-col items-center gap-2">
                   <span className="text-xs text-slate-500">
-                    {m.revenue > 0 ? `₦${(m.revenue / 1000).toFixed(0)}k` : ''}
+                    {m.revenue > 0 ? `$${(m.revenue / 1000).toFixed(0)}k` : ''}
                   </span>
                   <div className="w-full flex items-end">
                     <div
@@ -172,7 +172,7 @@ export default async function AdminRevenuePage() {
                     <p className="text-slate-500 text-xs">{c.career} · {c.count} enrolled</p>
                   </div>
                   <span className="text-emerald-400 text-sm font-semibold flex-shrink-0">
-                    ₦{c.revenue.toLocaleString()}
+                    ${c.revenue.toLocaleString()}
                   </span>
                 </div>
               ))}
@@ -221,7 +221,7 @@ export default async function AdminRevenuePage() {
                         <span className="text-slate-500 text-xs">Free</span>
                       ) : (
                         <span className="text-emerald-400 font-semibold">
-                          ₦{Number(e.course.price).toLocaleString()}
+                          ${Number(e.course.price).toLocaleString()}
                         </span>
                       )}
                     </td>

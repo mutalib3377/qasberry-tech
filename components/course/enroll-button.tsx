@@ -66,7 +66,7 @@ export function EnrollButton({ courseId, price, isFree }: Props) {
       >
         {loading
           ? <><Loader2 size={16} className="animate-spin" /> Processing…</>
-          : <>{isFree ? 'Enroll for Free' : `Enrol — ₦${price.toLocaleString()}`} <ArrowRight size={15} /></>
+          : <>{isFree ? 'Enroll for Free' : `Enrol — $${price.toLocaleString()}`} <ArrowRight size={15} /></>
         }
       </button>
       {error && (

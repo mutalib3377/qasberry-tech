@@ -273,7 +273,7 @@ export function CourseEditForm({ course, careers }: { course: CourseData; career
           </label>
           {!isFree && (
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-sm">₦</span>
+              <span className="text-slate-400 text-sm">$</span>
               <input type="number" min={0} step={100} className={`${inputCls} w-36`} value={price||''} onChange={e=>setPrice(Math.max(0,Number(e.target.value)))} />
             </div>
           )}

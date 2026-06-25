@@ -248,7 +248,7 @@ function StepBasicInfo({
           </label>
           {!info.isFree && (
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-sm">₦</span>
+              <span className="text-slate-400 text-sm">$</span>
               <input
                 type="number"
                 min={0}
@@ -916,7 +916,7 @@ function StepReview({
               <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300">{careerName}</span>
               <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300">{info.difficulty}</span>
               <span className={`px-2 py-0.5 rounded-lg ${info.isFree ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                {info.isFree ? 'Free' : `₦${info.price.toLocaleString()}`}
+                {info.isFree ? 'Free' : `$${info.price.toLocaleString()}`}
               </span>
             </div>
             {info.description && (

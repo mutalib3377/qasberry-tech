@@ -61,7 +61,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const appUrl    = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001'
-  const amountKobo = Math.round(Number(course.price) * 100) // Paystack uses kobo
+  const amountCents = Math.round(Number(course.price) * 100) // Paystack uses cents for USD
 
   const paystackRes = await fetch('https://api.paystack.co/transaction/initialize', {
     method:  'POST',
@@ -71,8 +71,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     },
     body: JSON.stringify({
       email:        user.email,
-      amount:       amountKobo,
-      currency:     'NGN',
+      amount:       amountCents,
+      currency:     'USD',
       reference:    `qas_${user.id}_${courseId}_${Date.now()}`,
       callback_url: `${appUrl}/api/payments/verify`,
       metadata:     { courseId, userId: user.id },

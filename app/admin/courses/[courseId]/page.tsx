@@ -121,7 +121,7 @@ export default async function AdminCourseDetailPage({ params }: PageProps) {
               <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs">{course.career.name}</span>
               <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs">{DIFFICULTY_LABELS[course.difficulty]}</span>
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${course.isFree ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
-                {course.isFree ? 'Free' : `₦${Number(course.price).toLocaleString()}`}
+                {course.isFree ? 'Free' : `$${Number(course.price).toLocaleString()}`}
               </span>
             </div>
 
